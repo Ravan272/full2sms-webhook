@@ -4,6 +4,9 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
+// 🔐 Render madhun token gheto
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
 app.post("/webhook", async (req, res) => {
 
   const data = req.body;
@@ -14,21 +17,27 @@ app.post("/webhook", async (req, res) => {
 
     let userId = data.merchant_order_id.split("_")[0];
 
-    await axios.get(
-      "https://api.telegram.org/8757277978:AAGHFbUas3uEt_f3M03kpZ8K-AG88rH9nJc/sendMessage",
-      {
-        params:{
-          chat_id: userId,
-          text:
-          "✅ Payout Successful!\n\n"+
-          "Amount: ₹"+data.amount+"\n"+
-          "UTR: "+data.utr
+    try{
+      await axios.get(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+        {
+          params:{
+            chat_id: userId,
+            text:
+            "✅ Payout Successful!\n\n"+
+            "Amount: ₹"+data.amount+"\n"+
+            "UTR: "+data.utr
+          }
         }
-      }
-    );
+      );
+    } catch(error){
+      console.log("Telegram Error:", error.message);
+    }
   }
 
   res.sendStatus(200);
 });
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running...");
+});
